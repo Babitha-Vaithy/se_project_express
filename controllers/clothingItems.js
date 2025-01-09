@@ -3,15 +3,19 @@ const statusCode = require("../utils/error");
 
 const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
-  const owner = req.user.id;
+  const owner = req.user._id;
 
   ClothingItem.create({ name, weather, imageUrl, owner })
     .then((item) => res.status(201).send({ data: item }))
     .catch((e) => {
       if (e.name === "ValidationError") {
-        res.status(400).send({ message: "Invalid Request" });
+        res
+          .status(statusCode.CastError.code)
+          .send({ message: statusCode.CastError.message });
       } else {
-        res.status(500).send({ message: "error from Createitem", e });
+        res
+          .status(statusCode.serverError.code)
+          .send({ message: statusCode.serverError.message });
       }
     });
 };
@@ -52,7 +56,7 @@ const deleteItem = (req, res) => {
 const likeItem = (req, res) =>
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
-    { $addToSet: { likes: req.user.id } }, // add _id to the array if it's not there yet
+    { $addToSet: { likes: req.user._id } }, // add _id to the array if it's not there yet
     { new: true }
   )
     .orFail()
@@ -73,7 +77,7 @@ const likeItem = (req, res) =>
 const dislikeItem = (req, res) =>
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
-    { $pull: { likes: req.user.id } }, // remove _id from the array
+    { $pull: { likes: req.user._id } }, // remove _id from the array
     { new: true }
   )
     .orFail()
