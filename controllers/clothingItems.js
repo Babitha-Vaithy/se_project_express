@@ -37,6 +37,10 @@ const getItems = (req, res) => {
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
+    // call getCurrentUser and get its id
+    // find itemId by findById
+    // if both match. call clothingItem.findByIdAndDelete
+
 
   ClothingItem.findByIdAndDelete(itemId)
     .orFail()

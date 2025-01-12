@@ -11,6 +11,10 @@ const statusCode = {
     code: 500,
     message: "Internal Server Error",
   },
+  DuplicateKeyError: {
+    code: 11000,
+    message: "Duplicate Key Error",
+  },
 };
 
 module.exports = statusCode;
