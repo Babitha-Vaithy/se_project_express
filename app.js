@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const mainRouter = require("./routes/index");
 const statusCode = require("./utils/error");
+const cors = require("cors");
 
 const app = express();
 const { PORT = 3001 } = process.env;
@@ -22,6 +23,8 @@ app.use((req, res) => {
     .status(statusCode.DocumentNotFoundError.code)
     .send({ message: statusCode.DocumentNotFoundError.message });
 });
+
+app.use(cors());
 
 app.listen(PORT, () => {
   console.log(`Server is running  on port ${PORT}`);

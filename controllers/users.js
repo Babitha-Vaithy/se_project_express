@@ -28,12 +28,11 @@ const createUser = (req, res) => {
       })
     )
     .then((user) => {
-      console.log(user);
-      delete user.password;
-      console.log(user);
+      delete user._doc.password;
       res.status(201).send(user);
     })
     .catch((err) => {
+      console.log(err);
       if (err.name === "ValidationError") {
         return res
           .status(statusCode.CastError.code)
@@ -58,6 +57,7 @@ const getCurrentUser = (req, res) => {
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
+        console.log("404");
         return res
           .status(statusCode.DocumentNotFoundError.code)
           .send({ message: statusCode.DocumentNotFoundError.message });
@@ -76,7 +76,7 @@ const getCurrentUser = (req, res) => {
 const patchCurrentUser = (req, res) => {
   const { name, avatar } = req.user;
 
-  User.findOne(
+  User.findOneAndUpdate(
     { name },
     { $addToSet: { name, avatar } }, // add _id to the array if it's not there yet
     { new: true }
@@ -99,16 +99,29 @@ const patchCurrentUser = (req, res) => {
 const login = (req, res) => {
   const { email, password } = req.body;
 
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
-        expiresIn: "7d",
-      });
-      res.status(200).send({ token });
-    })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-    });
+  User.findOne({ email }, function (err, user) {
+    if (!user) {
+      res.status(400).send({ message: "User not found" });
+    } else {
+      return User.findUserByCredentials(email, password)
+        .then((user) => {
+          const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+            expiresIn: "7d",
+          });
+          res.status(200).send({ token });
+        })
+        .catch((err) => {
+          console.log(err.name);
+          if (err.name === "ValidationError") {
+            return res
+              .status(statusCode.CastError.code)
+              .send({ message: statusCode.CastError.message });
+          } else {
+            res.status(401).send({ message: err.message });
+          }
+        });
+    }
+  });
 };
 
 module.exports = {

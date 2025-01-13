@@ -37,10 +37,8 @@ const getItems = (req, res) => {
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
-    // call getCurrentUser and get its id
-    // find itemId by findById
-    // if both match. call clothingItem.findByIdAndDelete
-
+  console.log(req.user);
+  const userId = req.user._id;
 
   ClothingItem.findByIdAndDelete(itemId)
     .orFail()
@@ -50,6 +48,10 @@ const deleteItem = (req, res) => {
         return res
           .status(statusCode[e.name].code)
           .send({ message: statusCode[e.name].message });
+      } else if (userId !== itemId) {
+        return res
+          .status(statusCode.ForbiddenError.code)
+          .send({ message: statusCode.ForbiddenError.message });
       }
       return res
         .status(statusCode.serverError.code)
@@ -57,7 +59,7 @@ const deleteItem = (req, res) => {
     });
 };
 
-const likeItem = (req, res) =>
+const likeItem = (req, res) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: req.user._id } }, // add _id to the array if it's not there yet
@@ -77,8 +79,10 @@ const likeItem = (req, res) =>
         .status(statusCode.serverError.code)
         .send({ message: statusCode.serverError.message });
     });
+};
 
-const dislikeItem = (req, res) =>
+const dislikeItem = (req, res) => {
+  console.log(req);
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: req.user._id } }, // remove _id from the array
@@ -96,5 +100,6 @@ const dislikeItem = (req, res) =>
         .status(statusCode.serverError.code)
         .send({ message: statusCode.serverError.message });
     });
+};
 
 module.exports = { createItem, getItems, deleteItem, likeItem, dislikeItem };

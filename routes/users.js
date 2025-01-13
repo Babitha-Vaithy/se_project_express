@@ -9,8 +9,8 @@ const auth = require("../middlewares/auth");
 
 router.use(auth);
 //router.get("/", getUsers);
-router.get("/users/me", getCurrentUser);
-router.patch("/users/me", patchCurrentUser);
+router.get("/me", getCurrentUser);
+router.patch("/me", patchCurrentUser);
 //router.post("/", createUser);
 
 module.exports = router;

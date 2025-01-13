@@ -15,6 +15,10 @@ const statusCode = {
     code: 11000,
     message: "Duplicate Key Error",
   },
+  ForbiddenError: {
+    code: 403,
+    message: "Access Forbidden",
+  },
 };
 
 module.exports = statusCode;
