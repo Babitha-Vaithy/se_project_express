@@ -44,9 +44,8 @@ const deleteItem = (req, res) => {
       if (item) {
         if (item.owner.toString() === userId) {
           return ClothingItem.findByIdAndDelete(itemId).orFail();
-        } else {
-          throw new Error("Can't delete");
         }
+        throw new Error("Can't delete");
       } else {
         res
           .status(statusCode.DocumentNotFoundError.code)
@@ -55,7 +54,6 @@ const deleteItem = (req, res) => {
     })
     .then((item) => res.status(200).send(item))
     .catch((e) => {
-      console.log(e.message);
       if (e.message === "Can't delete") {
         return res
           .status(statusCode.ForbiddenError.code)
@@ -65,10 +63,6 @@ const deleteItem = (req, res) => {
         return res
           .status(statusCode[e.name].code)
           .send({ message: statusCode[e.name].message });
-      } else if (userId !== itemId) {
-        return res
-          .status(statusCode.ForbiddenError.code)
-          .send({ message: statusCode.ForbiddenError.message });
       }
       return res
         .status(statusCode.serverError.code)

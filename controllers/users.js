@@ -1,8 +1,8 @@
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const statusCode = require("../utils/error");
-const bcrypt = require("bcryptjs");
 const JWT_SECRET = require("../utils/config");
-const jwt = require("jsonwebtoken");
 
 const getUsers = (req, res) => {
   User.find({})
@@ -15,10 +15,11 @@ const getUsers = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const { name, avatar, email, password } = req.body;
+  const { name, avatar, email } = req.body;
+  const pwd = req.body.password;
 
   bcrypt
-    .hash(password, 10)
+    .hash(pwd, 10)
     .then((hash) =>
       User.create({
         name,
@@ -28,17 +29,16 @@ const createUser = (req, res) => {
       })
     )
     .then((user) => {
-      delete user._doc.password;
-      res.status(201).send(user);
+      const { password, ...response } = user.toObject();
+      res.status(201).send(response);
     })
     .catch((err) => {
-      console.log(err);
       if (err.name === "ValidationError") {
         return res
           .status(statusCode.CastError.code)
           .send({ message: statusCode.CastError.message });
-      } else if (err.code === 11000) {
-        console.log(err.name);
+      }
+      if (err.code === 11000) {
         return res
           .status(statusCode.DuplicateKeyError.code)
           .send({ message: statusCode.DuplicateKeyError.message });
@@ -58,7 +58,6 @@ const getCurrentUser = (req, res) => {
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        console.log("404");
         return res
           .status(statusCode.DocumentNotFoundError.code)
           .send({ message: statusCode.DocumentNotFoundError.message });
@@ -102,34 +101,35 @@ const login = (req, res) => {
       .send({ message: "Password is required" });
     return;
   }
-  User.findOne({ email }, function (err, user) {
+  User.findOne({ email }, (err, user) => {
     if (!user) {
-      res.status(statusCode.CastError.code).send({ message: "User not found" });
-    } else {
-      return User.findUserByCredentials(email, password)
-        .then((user) => {
-          const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
-            expiresIn: "7d",
-          });
-          res.status(200).send({ token });
-        })
-        .catch((err) => {
-          console.log(err);
-          if (err.name === "ValidationError") {
-            return res
-              .status(statusCode.CastError.code)
-              .send({ message: statusCode.CastError.message });
-          } else if (err.message === "Incorrect email or password") {
-            return res
-              .status(statusCode.CastError.code)
-              .send({ message: statusCode.CastError.message });
-          } else {
-            res
-              .status(statusCode.serverError.code)
-              .send({ message: err.message });
-          }
-        });
+      return res
+        .status(statusCode.CastError.code)
+        .send({ message: "User not found" });
     }
+
+    return User.findUserByCredentials(email, password)
+      .then((data) => {
+        const token = jwt.sign({ _id: data._id }, JWT_SECRET, {
+          expiresIn: "7d",
+        });
+        res.status(200).send({ token });
+      })
+      .catch((error) => {
+        if (error.name === "ValidationError") {
+          return res
+            .status(statusCode.CastError.code)
+            .send({ message: statusCode.CastError.message });
+        }
+        if (error.message === "Incorrect email or password") {
+          return res
+            .status(statusCode.CastError.code)
+            .send({ message: statusCode.CastError.message });
+        }
+        return res
+          .status(statusCode.serverError.code)
+          .send({ message: err.message });
+      });
   });
 };
 
