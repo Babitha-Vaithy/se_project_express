@@ -12,7 +12,7 @@ const statusCode = {
     message: "Internal Server Error",
   },
   DuplicateKeyError: {
-    code: 11000,
+    code: 409,
     message: "Duplicate Key Error",
   },
   ForbiddenError: {

@@ -37,13 +37,30 @@ const getItems = (req, res) => {
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
-  console.log(req.user);
   const userId = req.user._id;
 
-  ClothingItem.findByIdAndDelete(itemId)
-    .orFail()
+  ClothingItem.findById(itemId)
+    .then((item) => {
+      if (item) {
+        if (item.owner.toString() === userId) {
+          return ClothingItem.findByIdAndDelete(itemId).orFail();
+        } else {
+          throw new Error("Can't delete");
+        }
+      } else {
+        res
+          .status(statusCode.DocumentNotFoundError.code)
+          .send({ message: statusCode.DocumentNotFoundError.message });
+      }
+    })
     .then((item) => res.status(200).send(item))
     .catch((e) => {
+      console.log(e.message);
+      if (e.message === "Can't delete") {
+        return res
+          .status(statusCode.ForbiddenError.code)
+          .send({ message: statusCode.ForbiddenError.message });
+      }
       if (e.name in statusCode) {
         return res
           .status(statusCode[e.name].code)

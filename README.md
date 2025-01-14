@@ -24,5 +24,11 @@ Project features:
 ./Sprint 12 - Models.png
 ./Sprint 12 - Controllers.png
 ./Sprint 12 - Routes.png
+./Sprint 13 - auth.png
+./Sprint 13 - UsersModels.png
+./Sprint 13 - UsersRoutes.png
+./Sprint 13 - UsersControllers.png
 
-Project Demo Video: https://vimeo.com/manage/videos/1044892778
+Project Sprint 12 Demo Video: https://vimeo.com/manage/videos/1044892778
+
+Project Sprint 13 Demo Video:

@@ -51,8 +51,9 @@ const createUser = (req, res) => {
 };
 
 const getCurrentUser = (req, res) => {
-  const { userId } = req.user;
-  User.findById(userId)
+  const { _id } = req.user;
+
+  User.findById(_id)
     .orFail()
     .then((user) => res.status(200).send(user))
     .catch((err) => {
@@ -74,13 +75,10 @@ const getCurrentUser = (req, res) => {
 };
 
 const patchCurrentUser = (req, res) => {
-  const { name, avatar } = req.user;
+  const { name, avatar } = req.body;
+  const { _id } = req.user;
 
-  User.findOneAndUpdate(
-    { name },
-    { $addToSet: { name, avatar } }, // add _id to the array if it's not there yet
-    { new: true }
-  )
+  User.findOneAndUpdate({ _id }, { name, avatar }, { new: true })
     .orFail()
     .then((user) => res.status(200).send(user))
     .catch((e) => {
@@ -98,10 +96,15 @@ const patchCurrentUser = (req, res) => {
 
 const login = (req, res) => {
   const { email, password } = req.body;
-
+  if (!password) {
+    res
+      .status(statusCode.CastError.code)
+      .send({ message: "Password is required" });
+    return;
+  }
   User.findOne({ email }, function (err, user) {
     if (!user) {
-      res.status(400).send({ message: "User not found" });
+      res.status(statusCode.CastError.code).send({ message: "User not found" });
     } else {
       return User.findUserByCredentials(email, password)
         .then((user) => {
@@ -111,13 +114,19 @@ const login = (req, res) => {
           res.status(200).send({ token });
         })
         .catch((err) => {
-          console.log(err.name);
+          console.log(err);
           if (err.name === "ValidationError") {
             return res
               .status(statusCode.CastError.code)
               .send({ message: statusCode.CastError.message });
+          } else if (err.message === "Incorrect email or password") {
+            return res
+              .status(statusCode.CastError.code)
+              .send({ message: statusCode.CastError.message });
           } else {
-            res.status(401).send({ message: err.message });
+            res
+              .status(statusCode.serverError.code)
+              .send({ message: err.message });
           }
         });
     }
