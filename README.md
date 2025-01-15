@@ -31,4 +31,4 @@ Project features:
 
 Project Sprint 12 Demo Video: https://vimeo.com/manage/videos/1044892778
 
-Project Sprint 13 Demo Video:
+Project Sprint 13 Demo Video: https://vimeo.com/manage/videos/1047005199
