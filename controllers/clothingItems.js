@@ -37,36 +37,47 @@ const getItems = (req, res) => {
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
-  const userId = req.user._id;
 
   ClothingItem.findById(itemId)
     .then((item) => {
       if (item) {
-        if (item.owner.toString() === userId) {
-          return ClothingItem.findByIdAndDelete(itemId).orFail();
+        const userId = req.user._id;
+        if (userId === item.owner.toString()) {
+          ClothingItem.findByIdAndDelete(itemId)
+            .orFail()
+            .then((data) => res.status(200).send(data))
+            .catch((e) => {
+              if (e.name in statusCode) {
+                res
+                  .status(statusCode[e.name].code)
+                  .send({ message: statusCode[e.name].message });
+              } else {
+                res
+                  .status(statusCode.serverError.code)
+                  .send({ message: statusCode.serverError.message });
+              }
+            });
+        } else {
+          res
+            .status(statusCode.ForbiddenError.code)
+            .send({ message: statusCode.ForbiddenError.message });
         }
-        throw new Error("Can't delete");
       } else {
         res
           .status(statusCode.DocumentNotFoundError.code)
           .send({ message: statusCode.DocumentNotFoundError.message });
       }
     })
-    .then((item) => res.status(200).send(item))
-    .catch((e) => {
-      if (e.message === "Can't delete") {
-        return res
-          .status(statusCode.ForbiddenError.code)
-          .send({ message: statusCode.ForbiddenError.message });
+    .catch((err) => {
+      if (err.name in statusCode) {
+        res
+          .status(statusCode[err.name].code)
+          .send({ message: statusCode[err.name].message });
+      } else {
+        res
+          .status(statusCode.serverError.code)
+          .send({ message: statusCode.serverError.message });
       }
-      if (e.name in statusCode) {
-        return res
-          .status(statusCode[e.name].code)
-          .send({ message: statusCode[e.name].message });
-      }
-      return res
-        .status(statusCode.serverError.code)
-        .send({ message: statusCode.serverError.message });
     });
 };
 
@@ -93,7 +104,6 @@ const likeItem = (req, res) => {
 };
 
 const dislikeItem = (req, res) => {
-  console.log(req);
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: req.user._id } }, // remove _id from the array
