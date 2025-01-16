@@ -4,16 +4,6 @@ const User = require("../models/user");
 const statusCode = require("../utils/error");
 const JWT_SECRET = require("../utils/config");
 
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.status(200).send(users))
-    .catch(() =>
-      res
-        .status(statusCode.serverError.code)
-        .send({ message: statusCode.serverError.message })
-    );
-};
-
 const createUser = (req, res) => {
   const { name, avatar, email } = req.body;
   const pwd = req.body.password;
@@ -77,10 +67,19 @@ const patchCurrentUser = (req, res) => {
   const { name, avatar } = req.body;
   const { _id } = req.user;
 
-  User.findOneAndUpdate({ _id }, { name, avatar }, { new: true })
-    .orFail()
+  User.findOneAndUpdate(
+    { _id },
+    { name, avatar },
+    { new: true, runValidators: true }
+  )
+    .orFail(new Error("DocumentNotFoundError"))
     .then((user) => res.status(200).send(user))
     .catch((e) => {
+      if (e.name === "DocumentNotFoundError") {
+        res
+          .status(statusCode.DocumentNotFoundError.code)
+          .send({ message: statusCode.DocumentNotFoundError.message });
+      }
       if (e.name === "ValidationError") {
         res
           .status(statusCode.CastError.code)
@@ -95,46 +94,44 @@ const patchCurrentUser = (req, res) => {
 
 const login = (req, res) => {
   const { email, password } = req.body;
-  if (!password) {
+  if (!password || !email) {
     res
       .status(statusCode.CastError.code)
-      .send({ message: "Password is required" });
+      .send({ message: "Valid Credential is required" });
     return;
   }
-  User.findOne({ email }, (err, user) => {
-    if (!user) {
-      return res
-        .status(statusCode.CastError.code)
-        .send({ message: "User not found" });
-    }
 
-    return User.findUserByCredentials(email, password)
-      .then((data) => {
+  User.findUserByCredentials(email, password)
+    .then((data) => {
+      if (data) {
         const token = jwt.sign({ _id: data._id }, JWT_SECRET, {
           expiresIn: "7d",
         });
         res.status(200).send({ token });
-      })
-      .catch((error) => {
-        if (error.name === "ValidationError") {
-          return res
-            .status(statusCode.CastError.code)
-            .send({ message: statusCode.CastError.message });
-        }
-        if (error.message === "Incorrect email or password") {
-          return res
-            .status(statusCode.CastError.code)
-            .send({ message: statusCode.CastError.message });
-        }
+      } else {
+        res
+          .status(statusCode.UnauthorizedError.code)
+          .send({ message: statusCode.UnauthorizedError.message });
+      }
+    })
+    .catch((error) => {
+      if (error.name === "ValidationError") {
         return res
-          .status(statusCode.serverError.code)
-          .send({ message: err.message });
-      });
-  });
+          .status(statusCode.CastError.code)
+          .send({ message: statusCode.CastError.message });
+      }
+      if (error.message === "Incorrect email or password") {
+        return res
+          .status(statusCode.UnauthorizedError.code)
+          .send({ message: statusCode.UnauthorizedError.message });
+      }
+      return res
+        .status(statusCode.serverError.code)
+        .send({ message: statusCode.serverError.message });
+    });
 };
 
 module.exports = {
-  getUsers,
   createUser,
   getCurrentUser,
   login,

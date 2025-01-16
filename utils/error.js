@@ -19,6 +19,10 @@ const statusCode = {
     code: 403,
     message: "Access Forbidden",
   },
+  UnauthorizedError: {
+    code: 401,
+    message: "Unauthorized Error",
+  },
 };
 
 module.exports = statusCode;

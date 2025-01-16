@@ -13,6 +13,7 @@ mongoose
   .catch(console.error);
 
 app.use(express.json());
+app.use(cors());
 
 app.use("/", mainRouter);
 
@@ -21,8 +22,6 @@ app.use((req, res) => {
     .status(statusCode.DocumentNotFoundError.code)
     .send({ message: statusCode.DocumentNotFoundError.message });
 });
-
-app.use(cors());
 
 app.listen(PORT, () => {
   console.log(`Server is running  on port ${PORT}`);
