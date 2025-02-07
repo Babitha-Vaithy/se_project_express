@@ -1,5 +1,6 @@
 const ClothingItem = require("../models/clothingItem");
 const statusCode = require("../utils/error");
+const errorcode = require("../errorcode");
 
 const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
@@ -8,15 +9,7 @@ const createItem = (req, res) => {
   ClothingItem.create({ name, weather, imageUrl, owner })
     .then((item) => res.status(201).send({ data: item }))
     .catch((e) => {
-      if (e.name === "ValidationError") {
-        res
-          .status(statusCode.CastError.code)
-          .send({ message: statusCode.CastError.message });
-      } else {
-        res
-          .status(statusCode.serverError.code)
-          .send({ message: statusCode.serverError.message });
-      }
+      errorcode(e);
     });
 };
 
@@ -24,14 +17,7 @@ const getItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => res.status(200).send(items))
     .catch((e) => {
-      if (e.name in statusCode) {
-        return res
-          .status(statusCode[e.name].code)
-          .send({ message: statusCode[e.name].message });
-      }
-      return res
-        .status(statusCode.serverError.code)
-        .send({ message: statusCode.serverError.message });
+      errorcode(e);
     });
 };
 
@@ -47,37 +33,17 @@ const deleteItem = (req, res) => {
             .orFail()
             .then((data) => res.status(200).send(data))
             .catch((e) => {
-              if (e.name in statusCode) {
-                res
-                  .status(statusCode[e.name].code)
-                  .send({ message: statusCode[e.name].message });
-              } else {
-                res
-                  .status(statusCode.serverError.code)
-                  .send({ message: statusCode.serverError.message });
-              }
+              errorcode(e);
             });
         } else {
-          res
-            .status(statusCode.ForbiddenError.code)
-            .send({ message: statusCode.ForbiddenError.message });
+          next(new ForbiddenError(" Forbidden Error"));
         }
       } else {
-        res
-          .status(statusCode.DocumentNotFoundError.code)
-          .send({ message: statusCode.DocumentNotFoundError.message });
+        next(new NotFoundError("Not Found Error"));
       }
     })
     .catch((err) => {
-      if (err.name in statusCode) {
-        res
-          .status(statusCode[err.name].code)
-          .send({ message: statusCode[err.name].message });
-      } else {
-        res
-          .status(statusCode.serverError.code)
-          .send({ message: statusCode.serverError.message });
-      }
+      errorcode(err);
     });
 };
 
@@ -92,14 +58,7 @@ const likeItem = (req, res) => {
       res.status(200).send(items);
     })
     .catch((e) => {
-      if (e.name in statusCode) {
-        return res
-          .status(statusCode[e.name].code)
-          .send({ message: statusCode[e.name].message });
-      }
-      return res
-        .status(statusCode.serverError.code)
-        .send({ message: statusCode.serverError.message });
+      errorcode(e);
     });
 };
 
@@ -112,14 +71,7 @@ const dislikeItem = (req, res) => {
     .orFail()
     .then((items) => res.status(200).send(items))
     .catch((e) => {
-      if (e.name in statusCode) {
-        return res
-          .status(statusCode[e.name].code)
-          .send({ message: statusCode[e.name].message });
-      }
-      return res
-        .status(statusCode.serverError.code)
-        .send({ message: statusCode.serverError.message });
+      errorcode(e);
     });
 };
 

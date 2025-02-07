@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const statusCode = require("../utils/error");
 const JWT_SECRET = require("../utils/config");
+const errorcode = require("../errorcode");
 
 const createUser = (req, res) => {
   const { name, avatar, email } = req.body;
@@ -24,19 +25,13 @@ const createUser = (req, res) => {
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res
-          .status(statusCode.CastError.code)
-          .send({ message: statusCode.CastError.message });
+        next(new BadRequestError("Invalid format"));
       }
       if (err.code === 11000) {
-        return res
-          .status(statusCode.DuplicateKeyError.code)
-          .send({ message: statusCode.DuplicateKeyError.message });
+        next(new ConflictError("Duplicate Key Error"));
       }
 
-      return res
-        .status(statusCode.serverError.code)
-        .send({ message: statusCode.serverError.message });
+      next(err);
     });
 };
 
@@ -48,18 +43,12 @@ const getCurrentUser = (req, res) => {
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        return res
-          .status(statusCode.DocumentNotFoundError.code)
-          .send({ message: statusCode.DocumentNotFoundError.message });
+        next(new NotFoundError("Not Found Error"));
       }
       if (err.name === "CastError") {
-        return res
-          .status(statusCode.CastError.code)
-          .send({ message: statusCode.CastError.message });
+        next(new BadRequestError("Invalid format"));
       }
-      return res
-        .status(statusCode.serverError.code)
-        .send({ message: statusCode.serverError.message });
+      next(err);
     });
 };
 
@@ -76,18 +65,12 @@ const patchCurrentUser = (req, res) => {
     .then((user) => res.status(200).send(user))
     .catch((e) => {
       if (e.name === "DocumentNotFoundError") {
-        res
-          .status(statusCode.DocumentNotFoundError.code)
-          .send({ message: statusCode.DocumentNotFoundError.message });
+        next(new NotFoundError("Not Found Error"));
       }
       if (e.name === "ValidationError") {
-        res
-          .status(statusCode.CastError.code)
-          .send({ message: statusCode.CastError.message });
+        next(new BadRequestError("Invalid format"));
       } else {
-        res
-          .status(statusCode.serverError.code)
-          .send({ message: statusCode.serverError.message });
+        next(err);
       }
     });
 };
@@ -116,18 +99,12 @@ const login = (req, res) => {
     })
     .catch((error) => {
       if (error.name === "ValidationError") {
-        return res
-          .status(statusCode.CastError.code)
-          .send({ message: statusCode.CastError.message });
+        next(new BadRequestError("Invalid format"));
       }
       if (error.message === "Incorrect email or password") {
-        return res
-          .status(statusCode.UnauthorizedError.code)
-          .send({ message: statusCode.UnauthorizedError.message });
+        next(new UnauthorizedError(" Unauthorized Error"));
       }
-      return res
-        .status(statusCode.serverError.code)
-        .send({ message: statusCode.serverError.message });
+      next(error);
     });
 };
 
