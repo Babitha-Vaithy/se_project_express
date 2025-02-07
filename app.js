@@ -6,6 +6,8 @@ const statusCode = require("./utils/error");
 const error = require("./middlewares/errorHandler").default;
 const { requestLogger, errorLogger } = require("./middlewares/logger");
 
+require("dotenv").config();
+
 const { errors } = require("celebrate");
 
 const app = express();
