@@ -32,3 +32,6 @@ Project features:
 Project Sprint 12 Demo Video: https://vimeo.com/manage/videos/1044892778
 
 Project Sprint 13 Demo Video: https://vimeo.com/manage/videos/1047005199
+
+Frontend Application endpoint: https://www.babitha.crabdance.com/
+Backend express Application endpoint: https://api.babitha.crabdance.com/items
