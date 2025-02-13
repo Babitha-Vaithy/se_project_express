@@ -4,7 +4,7 @@ const ForbiddenError = require("./error/ForbiddenError");
 const NotFoundError = require("./error/NotFoundError");
 const UnauthorizedError = require("./error/UnauthorizedError");
 
-const errorcode = (e) => {
+const errorcode = (err, next) => {
   if (err.name === "CastError") {
     next(new BadRequestError("Invalid format"));
   } else if (err.name === "ConflictError") {

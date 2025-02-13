@@ -1,14 +1,13 @@
+require("dotenv").config();
+
 const cors = require("cors");
 const express = require("express");
 const mongoose = require("mongoose");
+const { errors } = require("celebrate");
 const mainRouter = require("./routes/index");
-const statusCode = require("./utils/error");
+const NotFoundError = require("./error/NotFoundError");
 const error = require("./middlewares/errorHandler").default;
 const { requestLogger, errorLogger } = require("./middlewares/logger");
-
-require("dotenv").config();
-
-const { errors } = require("celebrate");
 
 const app = express();
 const { PORT = 3001 } = process.env;
@@ -27,15 +26,13 @@ app.get("/crash-test", () => {
   }, 0);
 });
 
+app.use(requestLogger);
+
 app.use("/", mainRouter);
 
-app.use((req, res) => {
-  res
-    .status(statusCode.DocumentNotFoundError.code)
-    .send({ message: statusCode.DocumentNotFoundError.message });
+app.use((req, res, next) => {
+  next(new NotFoundError("Document Not Found"));
 });
-
-app.use(requestLogger);
 
 app.use(errorLogger);
 

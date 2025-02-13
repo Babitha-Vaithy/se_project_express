@@ -1,11 +1,13 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
-const statusCode = require("../utils/error");
-const JWT_SECRET = require("../utils/config");
-const errorcode = require("../errorcode");
+const BadRequestError = require("../error/BadRequestError");
+const ConflictError = require("../error/ConflictError");
+const NotFoundError = require("../error/NotFoundError");
+const UnauthorizedError = require("../error/UnauthorizedError");
+const { JWT_SECRET } = require("../utils/config");
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { name, avatar, email } = req.body;
   const pwd = req.body.password;
 
@@ -35,7 +37,7 @@ const createUser = (req, res) => {
     });
 };
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   const { _id } = req.user;
 
   User.findById(_id)
@@ -52,7 +54,7 @@ const getCurrentUser = (req, res) => {
     });
 };
 
-const patchCurrentUser = (req, res) => {
+const patchCurrentUser = (req, res, next) => {
   const { name, avatar } = req.body;
   const { _id } = req.user;
 
@@ -70,18 +72,15 @@ const patchCurrentUser = (req, res) => {
       if (e.name === "ValidationError") {
         next(new BadRequestError("Invalid format"));
       } else {
-        next(err);
+        next(e);
       }
     });
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
   if (!password || !email) {
-    res
-      .status(statusCode.CastError.code)
-      .send({ message: "Valid Credential is required" });
-    return;
+    next(new BadRequestError("Valid credentials required"));
   }
 
   User.findUserByCredentials(email, password)
@@ -92,9 +91,7 @@ const login = (req, res) => {
         });
         res.status(200).send({ token });
       } else {
-        res
-          .status(statusCode.UnauthorizedError.code)
-          .send({ message: statusCode.UnauthorizedError.message });
+        next(new UnauthorizedError("Unauthorized error"));
       }
     })
     .catch((error) => {
