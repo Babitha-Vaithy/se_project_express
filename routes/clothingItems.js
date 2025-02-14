@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const auth = require("../middlewares/auth");
-const createItemsValidator = require("../middlewares/validation");
-const validateId = require("../middlewares/validation");
+const { createItemsValidator } = require("../middlewares/validation");
+const { validateId } = require("../middlewares/validation");
 
 const {
   createItem,

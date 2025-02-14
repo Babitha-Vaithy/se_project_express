@@ -54,15 +54,10 @@ const updateUserValidator = celebrate({
   }),
 });
 
-module.exports = createItemsValidator;
-module.exports = createUserValidator;
-module.exports = createloginValidator;
-module.exports = validateId;
-module.exports = updateUserValidator;
-
-// module.exports = {
-//   createItemsValidator,
-//   createUserValidator,
-//   createloginValidator,
-//   validateId,
-// };
+module.exports = {
+  createItemsValidator,
+  createUserValidator,
+  createloginValidator,
+  validateId,
+  updateUserValidator,
+};

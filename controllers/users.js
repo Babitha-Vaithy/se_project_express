@@ -22,8 +22,9 @@ const createUser = (req, res, next) => {
       })
     )
     .then((user) => {
-      const { password, ...response } = user.toObject();
-      res.status(201).send(response);
+      const userWithoutPassword = user.toObject();
+      delete userWithoutPassword.password;
+      res.status(201).send(userWithoutPassword);
     })
     .catch((err) => {
       if (err.name === "ValidationError") {

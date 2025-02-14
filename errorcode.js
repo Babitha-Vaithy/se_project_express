@@ -11,8 +11,8 @@ const errorcode = (err, next) => {
     next(new ConflictError("Duplicate Key Error"));
   } else if (err.name === "ForbiddenError") {
     next(new ForbiddenError(" Forbidden Error"));
-  } else if (err.name === "NotFoundError") {
-    next(new NotFoundError("Not Found Error"));
+  } else if (err.name === "DocumentNotFoundError") {
+    next(new NotFoundError("Document Not Found Error"));
   } else if (err.name === "UnauthorizedError") {
     next(new UnauthorizedError(" Unauthorized Error"));
   } else {
